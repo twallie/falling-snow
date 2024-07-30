@@ -1,7 +1,7 @@
-use std::{thread, time::{self, SystemTime}};
+use std::{thread, time};
 
 use rand::Rng;
-use termgrid::{grid::Grid, print::{self, Printer}};
+use termgrid::{grid::Grid, print::Printer};
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum CellState {
