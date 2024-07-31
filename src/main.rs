@@ -28,7 +28,11 @@ fn main() {
     loop {
         let time = time::Duration::from_millis(1);
         thread::sleep(time);
-        grid = generate_next_grid(grid.clone());
+        let results = generate_next_grid(grid.clone());
+        if results.1 {
+            break;
+        }
+        grid = results.0;
         printer = match printer.update(grid.clone()) {
             Ok(v) => v,
             Err(_) => panic!(),
@@ -36,14 +40,23 @@ fn main() {
     }
 }
 
-fn generate_next_grid(grid: Grid<CellState>) -> Grid<CellState> {
+fn generate_next_grid(grid: Grid<CellState>) -> (Grid<CellState>, bool) {
     let mut new_grid = grid.clone();
     let mut set: HashSet<(usize, usize)> = HashSet::new();
+    let mut all_filled = true;
 
     for row in 0..grid.grid.len() {
         for col in 0..new_grid.grid[0].len() {
+            if new_grid.grid[row][col] == CellState::Empty {
+                all_filled = false;
+                continue;
+            }
             new_grid = apply_gravity_to_cell((row, col), new_grid, &mut set);
         }
+    }
+
+    if all_filled {
+        return (new_grid, true);
     }
 
     for col in 0..new_grid.grid[0].len() {
@@ -52,7 +65,7 @@ fn generate_next_grid(grid: Grid<CellState>) -> Grid<CellState> {
         }
     }
 
-    new_grid
+    (new_grid, false)
 }
 
 fn apply_gravity_to_cell(indices: (usize, usize), grid: Grid<CellState>, set: &mut HashSet<(usize, usize)>) -> Grid<CellState> {
