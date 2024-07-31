@@ -1,4 +1,4 @@
-use std::{cell::Cell, collections::HashSet, hash::Hash, thread, time};
+use std::{collections::HashSet, thread, time};
 
 use rand::Rng;
 use termgrid::{grid::Grid, print::Printer};
@@ -20,15 +20,15 @@ impl std::fmt::Display for CellState {
 }
 
 fn main() {
-    let mut grid = random_snow_grid();
+    let mut grid = Grid::new(CellState::Empty);
     let mut printer = Printer::new(grid.clone());
     printer.start();
 
     // lets just start by creating a random grid
     loop {
-        let time = time::Duration::from_millis(100);
+        let time = time::Duration::from_millis(1);
         thread::sleep(time);
-        grid = apply_gravity(grid.clone());
+        grid = generate_next_grid(grid.clone());
         printer = match printer.update(grid.clone()) {
             Ok(v) => v,
             Err(_) => panic!(),
@@ -36,13 +36,19 @@ fn main() {
     }
 }
 
-fn apply_gravity(grid: Grid<CellState>) -> Grid<CellState> {
+fn generate_next_grid(grid: Grid<CellState>) -> Grid<CellState> {
     let mut new_grid = grid.clone();
     let mut set: HashSet<(usize, usize)> = HashSet::new();
 
     for row in 0..grid.grid.len() {
         for col in 0..new_grid.grid[0].len() {
             new_grid = apply_gravity_to_cell((row, col), new_grid, &mut set);
+        }
+    }
+
+    for col in 0..new_grid.grid[0].len() {
+        if chance(1) {
+            new_grid.grid[0][col] = CellState::Snow;
         }
     }
 
@@ -81,32 +87,7 @@ fn apply_gravity_to_cell(indices: (usize, usize), grid: Grid<CellState>, set: &m
     new_grid
 }
 
-fn create_single_snow_grid() -> Grid<CellState> {
-    let mut grid = Grid::new(CellState::Empty);
-    grid.grid[0][0] = CellState::Snow;
-    grid.grid[1][0] = CellState::Snow;
-    grid.grid[2][0] = CellState::Snow;
-    return grid;
-}
-
-fn random_snow_grid() -> Grid<CellState> {
-    let mut grid = Grid::new(CellState::Empty);
-    
-    let row_count = grid.grid.len();
-    let column_count = grid.grid[0].len();
-
-    for row_index in 0..row_count / 3 {
-        for column_index in 0..column_count {
-            if fifty_fifty_chance() {
-                grid.grid[row_index][column_index] = CellState::Snow;
-            }
-        }
-    }
-
-    return grid;
-}
-
-fn fifty_fifty_chance() -> bool {
-    let num = rand::thread_rng().gen_range(0..3);
-    return (num % 3) == 0;
+fn chance(percent: usize) -> bool {
+    let num = rand::thread_rng().gen_range(0..100);
+    return num < percent;
 }
