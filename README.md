@@ -1,7 +1,7 @@
 # Falling Snow
 a cute little terminal simulation of falling snow
 
-![](https://i.imgur.com/wGcAhoS.gif)
+![](falling-snow-demo.gif)
 
 Falling snow is the first project I wrote with my "terminal engine" [termgrid](https://github.com/twallie/termgrid).
 
