@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 rand = "0.8.5"
-termgrid = { git = "https://github.com/twallie/termgrid", version = "0.1.0" }
+termgrid = { git = "https://github.com/twallie/termgrid", branch = "release/0.2.0", version = "0.2.0" }

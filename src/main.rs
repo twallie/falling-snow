@@ -38,6 +38,8 @@ fn main() {
             Err(_) => panic!(),
         };
     }
+
+    termgrid::print::reset_cursor();
 }
 
 fn generate_next_grid(grid: Grid<CellState>) -> (Grid<CellState>, bool) {

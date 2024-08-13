@@ -115,8 +115,8 @@ checksum = "20145670ba436b55d91fc92d25e71160fbfbdd57831631c8d7d36377a476f1cb"
 
 [[package]]
 name = "termgrid"
-version = "0.1.0"
-source = "git+https://github.com/twallie/termgrid#8a0b979660f6bfd7bce6d19243b9b2cf65448d77"
+version = "0.2.0"
+source = "git+https://github.com/twallie/termgrid?branch=release/0.2.0#cc14890be53dd886202d555abd1eb81c5984e014"
 dependencies = [
  "termion",
 ]
