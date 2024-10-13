@@ -10,11 +10,10 @@ enum CellState {
 }
 
 fn main() {
-    let mut termgrid = TermGrid::new(&CellState::Snow, &CellState::Empty);
+    let mut termgrid = TermGrid::new(&CellState::Snow, &CellState::Empty).unwrap();
     termgrid.start();
     termgrid.num_rows();
 
-    // lets just start by creating a random grid
     loop {
         let time = time::Duration::from_millis(1);
         thread::sleep(time);
@@ -50,7 +49,7 @@ fn generate_next_grid(grid: TermGrid<CellState>) -> (TermGrid<CellState>, bool) 
 
     for column in 0..new_grid.num_columns() {
         if chance(1) {
-            new_grid.set(column, new_grid.num_rows() - 1);
+            new_grid.set(column, new_grid.num_rows() - 1).unwrap();
         }
     }
 
@@ -90,8 +89,8 @@ fn apply_gravity_to_cell(
 
     if below < new_grid.num_rows() && *new_grid.get(indices.1, below).unwrap() != CellState::Snow {
         set.insert((below, indices.1));
-        new_grid.unset(indices.1, indices.0);
-        new_grid.set(indices.1, below);
+        new_grid.unset(indices.1, indices.0).unwrap();
+        new_grid.set(indices.1, below).unwrap();
     }
 
     new_grid

@@ -148,7 +148,7 @@ dependencies = [
 [[package]]
 name = "termgrid"
 version = "0.3.0"
-source = "git+https://github.com/twallie/termgrid.git?branch=0.3.0-dev#c0435e0fd65b5319f14cfcb014be24a6c2e6a405"
+source = "git+https://github.com/twallie/termgrid?tag=v0.3.0#b7f4e97917b210ee6e9575f52706bd61b96e18de"
 dependencies = [
  "termion",
 ]
