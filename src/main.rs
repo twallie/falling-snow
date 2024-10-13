@@ -1,59 +1,46 @@
 use std::{collections::HashSet, thread, time};
 
 use rand::Rng;
-use termgrid::{grid::Grid, print::Printer};
+use termgrid::controller::TermGrid;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum CellState {
     Snow,
-    Empty
-}
-
-impl std::fmt::Display for CellState {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let str = match self {
-            CellState::Empty => " ",
-            CellState::Snow => "*"
-        };
-        write!(f, "{}", str)
-    }
+    Empty,
 }
 
 fn main() {
-    let mut grid = Grid::new(CellState::Empty);
-    let mut printer = Printer::new(grid.clone());
-    printer.start();
+    let mut termgrid = TermGrid::new(&CellState::Snow, &CellState::Empty);
+    termgrid.start();
+    termgrid.num_rows();
 
     // lets just start by creating a random grid
     loop {
         let time = time::Duration::from_millis(1);
         thread::sleep(time);
-        let results = generate_next_grid(grid.clone());
-        if results.1 {
+        let res = generate_next_grid(termgrid);
+        termgrid = res.0;
+        if res.1 {
             break;
-        }
-        grid = results.0;
-        printer = match printer.update(grid.clone()) {
-            Ok(v) => v,
-            Err(_) => panic!(),
         };
+        termgrid.update();
     }
 
-    termgrid::print::reset_cursor();
+    termgrid.end();
 }
 
-fn generate_next_grid(grid: Grid<CellState>) -> (Grid<CellState>, bool) {
+fn generate_next_grid(grid: TermGrid<CellState>) -> (TermGrid<CellState>, bool) {
     let mut new_grid = grid.clone();
     let mut set: HashSet<(usize, usize)> = HashSet::new();
     let mut all_filled = true;
 
-    for row in 0..grid.grid.len() {
-        for col in 0..new_grid.grid[0].len() {
-            if new_grid.grid[row][col] == CellState::Empty {
+    for row in 0..grid.num_rows() {
+        for column in 0..grid.num_columns() {
+            if *new_grid.get(column, row).unwrap() == CellState::Empty {
                 all_filled = false;
                 continue;
             }
-            new_grid = apply_gravity_to_cell((row, col), new_grid, &mut set);
+            new_grid = apply_gravity_to_cell((row, column), new_grid, &mut set);
         }
     }
 
@@ -61,42 +48,50 @@ fn generate_next_grid(grid: Grid<CellState>) -> (Grid<CellState>, bool) {
         return (new_grid, true);
     }
 
-    for col in 0..new_grid.grid[0].len() {
+    for column in 0..new_grid.num_columns() {
         if chance(1) {
-            new_grid.grid[0][col] = CellState::Snow;
+            new_grid.set(column, new_grid.num_rows() - 1);
         }
     }
 
     (new_grid, false)
 }
 
-fn apply_gravity_to_cell(indices: (usize, usize), grid: Grid<CellState>, set: &mut HashSet<(usize, usize)>) -> Grid<CellState> {
+fn apply_gravity_to_cell(
+    indices: (usize, usize),
+    grid: TermGrid<CellState>,
+    set: &mut HashSet<(usize, usize)>,
+) -> TermGrid<CellState> {
+    // if we have already applied gravity to this cell
     if set.contains(&indices) {
         return grid;
     }
 
-    if grid.grid[indices.0][indices.1] == CellState::Empty {
+    // If this cell is empty, we cant apply gravity
+    if *grid.get(indices.1, indices.0).unwrap() == CellState::Empty {
         return grid;
     }
 
-    if grid.grid.len() - 1 <= indices.0 {
+    // If the cell is at the bottom of the screen, we cant apply gravity
+    if 0 == indices.0 {
         return grid;
     }
 
+    // Otherwise, we are going to apply gravity to this cell
     set.insert(indices);
     let mut new_grid = grid.clone();
 
-    let mut below = indices.0 + 1;
+    let mut below = indices.0 - 1;
 
-    while below < new_grid.grid.len() && new_grid.grid[below][indices.1] != CellState::Empty {
+    while below > 0 && *new_grid.get(indices.1, below).unwrap() != CellState::Empty {
         set.insert((below, indices.1));
-        below = below + 1;
+        below = below - 1;
     }
 
-    if below < new_grid.grid.len() {
+    if below < new_grid.num_rows() && *new_grid.get(indices.1, below).unwrap() != CellState::Snow {
         set.insert((below, indices.1));
-        new_grid.grid[indices.0][indices.1] = CellState::Empty;
-        new_grid.grid[below][indices.1] = CellState::Snow;
+        new_grid.unset(indices.1, indices.0);
+        new_grid.set(indices.1, below);
     }
 
     new_grid
